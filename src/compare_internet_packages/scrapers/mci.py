@@ -1,8 +1,7 @@
 import pandas as pd
-import requests
 from bs4 import BeautifulSoup
 
-from ._shared import HEADERS, write_csv
+from ._shared import HEADERS, http_session, warn_if_low, write_csv
 
 URL = "https://mci.ir/internet-plans"
 
@@ -12,7 +11,7 @@ URL = "https://mci.ir/internet-plans"
 #   new-sub   -> only buyable by new subscribers ("ویژه مشترکین جدید")
 UNMEASURABLE_TYPES = {"unlimited", "sobhanet", "new-sub"}
 
-TAX_RATE = 1.09  # MCI HTML exposes no VAT field; hardcode 9%
+TAX_RATE = 1.09  # MCI HTML exposes no VAT field; hardcode 9% (checked 2026-06)
 
 
 def _clean(node):
@@ -25,7 +24,7 @@ def mci():
     Returns one df per package: display columns plus numeric volume (MB; NaN for
     unrankable unlimited/sobhanet/new-sub packs) and price (toman, +VAT).
     """
-    resp = requests.get(URL, headers=HEADERS, timeout=30)
+    resp = http_session().get(URL, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -50,4 +49,4 @@ def mci():
 
     df = pd.DataFrame(rows)
     write_csv(df, "DB/mci.csv")
-    return df
+    return warn_if_low(df, "mci", 40)

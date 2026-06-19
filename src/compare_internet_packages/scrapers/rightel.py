@@ -2,9 +2,8 @@ import re
 import time
 
 import pandas as pd
-import requests
 
-from ._shared import USER_AGENT, write_csv
+from ._shared import USER_AGENT, http_session, warn_if_low, write_csv
 
 # RighTel rewrote its store into an Angular SPA. The old Selenium HTML scrape is
 # dead; packages now come from a JSON API behind a (password-less) bearer token.
@@ -63,7 +62,7 @@ def _time_range(name):
 
 
 def rightel(allow_limited_packs=False):
-    session = requests.Session()
+    session = http_session()
     auth = session.post(
         AUTH_URL, headers=HEADERS, json={"username": AUTH_USERNAME}, timeout=20
     )
@@ -114,4 +113,4 @@ def rightel(allow_limited_packs=False):
         drop=True
     )
     write_csv(df, OUTPUT_CSV)
-    return df
+    return warn_if_low(df, "rightel", 85)

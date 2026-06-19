@@ -1,9 +1,10 @@
 import re
+import sys
 
 import pandas as pd
 import requests
 
-from ._shared import HEADERS, write_csv
+from ._shared import HEADERS, http_session, warn_if_low, write_csv
 
 PAGE_URL = "https://irancell.ir/o/1001/mobile-internet-packages"
 PRODUCTS_API = "https://irancell.ir/e/products/{pid}"
@@ -20,6 +21,9 @@ def _packages_id(session):
             return m.group(1)
     except requests.RequestException:
         pass
+    print(
+        "warning: irancell using fallback packages-id (may be stale)", file=sys.stderr
+    )
     return DEFAULT_PACKAGES_ID
 
 
@@ -29,7 +33,7 @@ def _spec_fa(specs, key):
 
 
 def irancell(allow_limited_packs=False):
-    session = requests.Session()
+    session = http_session()
     pid = _packages_id(session)
 
     resp = session.get(
@@ -62,4 +66,4 @@ def irancell(allow_limited_packs=False):
 
     df = pd.DataFrame.from_dict(pack_json)
     write_csv(df, OUTPUT_CSV)
-    return df
+    return warn_if_low(df, "mtn", 38)
