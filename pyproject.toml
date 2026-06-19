@@ -1,0 +1,28 @@
+[project]
+name = "compare-internet-packages"
+version = "1.0.0"
+description = "Compare Iranian mobile-internet packages (MCI / Irancell / RighTel) by price-per-megabyte"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.13",
+    "pandas>=2.2",
+    "requests>=2.32",
+    "tabulate>=0.9",
+]
+
+[project.scripts]
+compare-internet-packages = "compare_internet_packages.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["ruff>=0.9"]
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B", "SIM"]

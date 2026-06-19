@@ -6,24 +6,22 @@
 ---
 
 ## Requirements
-- python3
-- use virtual environments & install requirements packages ([gist](https://gist.github.com/mheidari98/8ae29b88bd98f8f59828b0ec112811e7)) 
-- Chrome web driver : Download it from the address below and Put it next to the main.py in the base folder 
-  ```
-  Chrome:    https://sites.google.com/chromium.org/driver/downloads
-  ```
+- [uv](https://docs.astral.sh/uv/) (manages Python and dependencies)
 
- ---
+All three operators are now scraped over plain HTTP — no Chrome driver / Selenium.
+
+---
 
 ## Usage
   Get the best package offered with **100000** toman budget from **mci** and **mtn** :
   ```bash
-  python main.py -b 100000 -p mci mtn
+  uv run compare-internet-packages -b 100000 -p mci mtn
   ```
   for more options :
   ```bash
-  python main.py -h
+  uv run compare-internet-packages -h
   ```
+  Installable too: `pip install .` then run `compare-internet-packages ...`.
 
 ---
 ## Task-Lists
