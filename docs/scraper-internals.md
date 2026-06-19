@@ -56,9 +56,10 @@ source of truth for valid enum values.
 
 - **`package_type.value`** is the clean filter key — prefer it over Persian `desc`
   text if filtering by duration or detecting time-limited packs
-  (`specific-time-based`, `hourly`). All `sub_title.fa` are empty today, so the
-  `allow_limited_packs` filter is a no-op; it activates if Irancell re-introduces
-  subtitled night packs.
-- **Offer codes** (`prepaid_offer_code`, MCI `.purchase-btn[data-package-code]`)
-  would let us print exactly how to buy each ranked pack — an obvious parity
-  feature with the `ussd_code_block` the scrapers already surface.
+  (`specific-time-based`, `hourly`). Packs with a non-empty `sub_title.fa`
+  (night/region restricted) are always dropped — they can't be ranked per-MB
+  fairly. All `sub_title.fa` are empty today, so this is dormant for now; if a
+  toggle to include them is ever wanted, re-add an `--allow-limited` CLI flag.
+- **Offer codes**: Irancell `prepaid_offer_code` is now scraped (offer-code
+  column). MCI `.purchase-btn[data-package-code]` is still unscraped — adding it
+  would give MCI an online-purchase code alongside its USSD code.

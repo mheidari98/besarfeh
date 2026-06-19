@@ -61,7 +61,7 @@ def _time_range(name):
     return ""
 
 
-def rightel(allow_limited_packs=False):
+def rightel():
     session = http_session()
     auth = session.post(
         AUTH_URL, headers=HEADERS, json={"username": AUTH_USERNAME}, timeout=20
@@ -89,7 +89,7 @@ def rightel(allow_limited_packs=False):
             continue
 
         time_range = _time_range(name)
-        if not allow_limited_packs and time_range:
+        if time_range:  # skip night/Iraq/international packs; can't rank fairly
             continue
 
         # packagePrice is RIAL, VAT included (matches the "۳۸,۲۰۰ ریال" the site

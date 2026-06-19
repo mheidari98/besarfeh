@@ -32,14 +32,14 @@ def _spec_fa(specs, key):
     return specs.get(key, {}).get("desc", {}).get("fa", "").strip()
 
 
-def _pack_row(pack, allow_limited_packs):
+def _pack_row(pack):
     """One normalized row from a product, or None to skip (non-data / time-limited)."""
     specs = {s["key"]: s for s in pack.get("specification_contents", [])}
     traffic = _spec_fa(specs, "traffic")
     if not traffic:  # skip non-data packs (voice/SMS)
         return None
     time_range = pack.get("sub_title", {}).get("fa", "").strip()
-    if not allow_limited_packs and time_range:
+    if time_range:  # skip time-limited (night/region) packs; can't rank fairly
         return None
     vat = pack.get("vat_percentage") or 0
     return {
@@ -55,7 +55,7 @@ def _pack_row(pack, allow_limited_packs):
     }
 
 
-def irancell(allow_limited_packs=False):
+def irancell():
     session = http_session()
     pid = _packages_id(session)
 
@@ -66,7 +66,7 @@ def irancell(allow_limited_packs=False):
     )
     resp.raise_for_status()
 
-    rows = [_pack_row(p, allow_limited_packs) for p in resp.json()]
+    rows = [_pack_row(p) for p in resp.json()]
     df = pd.DataFrame.from_dict([r for r in rows if r])
     write_csv(df, OUTPUT_CSV)
     return warn_if_low(df, "mtn", 38)
