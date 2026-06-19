@@ -103,7 +103,7 @@ def rightel(allow_limited_packs=False):
                 "data-duration": _duration(digits),
                 "time-range": time_range,
                 "price": round(price_rial / 10),
-                "volume": int(volume),
+                "volume": volume,  # float MB, like the other scrapers
                 "offer-code": p.get("pricePlanOfferCode") or "",
             }
         )
