@@ -66,3 +66,32 @@ def test_compare_reports_when_nothing_bought(monkeypatch, capsys):
     ranking.compare(["good"], 100)  # budget below cheapest pack
     out = capsys.readouterr().out
     assert "No packages" in out
+
+
+def test_rank_item_carries_normalized_fields(monkeypatch):
+    _patch(monkeypatch, {"good": lambda: _GOOD})  # 1000MB @ 10000
+    item = ranking.rank(["good"], 10000)[0]
+    assert item["volume"] == 1000
+    assert item["price"] == 10000
+    assert item["price_per_mb"] == 10.0
+
+
+_DISPLAY = pd.DataFrame(
+    {
+        "volume": [2048],
+        "price": [15000],
+        "pack-name": ["2GB pack"],
+        "offer-code": ["12345"],
+    }
+)
+
+
+def test_compare_output_is_clean(monkeypatch, capsys):
+    _patch(monkeypatch, {"d": lambda: _DISPLAY})
+    ranking.compare(["d"], 30000)  # buys 2
+    out = capsys.readouterr().out
+    assert "2 GB" in out  # humanized volume, not raw "2048"
+    assert "2048" not in out
+    assert "7.3" in out  # price/MB = 15000/2048
+    assert "30,000" in out  # formatted total (2 x 15000)
+    assert "12345" in out  # buy code surfaced

@@ -9,8 +9,9 @@ from .scrapers import SCRAPERS
 def rank(providers, budget):
     """Scrape the requested providers and return a greedy buy-plan (no printing).
 
-    Each entry is {"provider", "count", "pack"} where `pack` is the provider's
-    display row (a pandas Series). Returned in cheapest-price-per-MB order.
+    Each entry has normalized fields (provider, count, volume MB, price toman,
+    price_per_mb) plus `pack`, the provider's raw display row (a pandas Series).
+    Returned in cheapest-price-per-MB order.
     """
     frames, info = [], {}
     for name, scrape in SCRAPERS.items():  # fixed order: mci, mtn, rightel
@@ -48,18 +49,47 @@ def rank(providers, budget):
                 {
                     "provider": row["provider"],
                     "count": count,
+                    "volume": row["volume"],
+                    "price": row["price"],
+                    "price_per_mb": row["price/meg"],
                     "pack": info[row["provider"]].loc[row["id"]],
                 }
             )
     return plan
 
 
+def _human_mb(mb):
+    """1024 -> '1 GB', 60 -> '60 MB'."""
+    return f"{mb / 1024:g} GB" if mb >= 1024 else f"{mb:g} MB"
+
+
+def _display_row(item):
+    """One uniform, human-readable row across all providers (no internal cols)."""
+    pack = item["pack"]
+    name = pack.get("pack-name") or pack.get("package_volume_info") or ""
+    buy_code = pack.get("ussd_code_block") or pack.get("offer-code") or ""
+    price = round(item["price"])
+    return {
+        "provider": item["provider"],
+        "pack": name,
+        "volume": _human_mb(item["volume"]),
+        "price": f"{price:,}",
+        "price/MB": f"{item['price_per_mb']:.1f}",
+        "count": item["count"],
+        "total": f"{price * item['count']:,}",
+        "buy code": buy_code,
+    }
+
+
 def compare(providers, budget):
-    """Rank by price-per-MB and print what to buy within budget."""
+    """Rank by price-per-MB and print what to buy within budget (toman)."""
     plan = rank(providers, budget)
     if not plan:
-        print(f"No packages found within budget {budget} (or all sources failed).")
+        print(
+            f"No packages found within budget {budget:,} toman (or all sources failed)."
+        )
         return
-    for item in plan:
-        print(f"you should buy {item['count']} package from {item['provider']}")
-        print(tabulate([item["pack"]], headers="keys", tablefmt="psql"))
+    rows = [_display_row(item) for item in plan]
+    print(tabulate(rows, headers="keys", tablefmt="psql"))
+    total = sum(round(item["price"]) * item["count"] for item in plan)
+    print(f"\nTotal: {total:,} of {budget:,} toman")
