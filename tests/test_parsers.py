@@ -4,7 +4,7 @@ These lock in the regex behavior that silently breaks when the site changes
 pack-name wording (volume / duration / time-range). No mocking needed.
 """
 
-from compare_internet_packages.scrapers.rightel import (
+from besarfeh.scrapers.rightel import (
     _FA_DIGITS,
     _duration,
     _time_range,

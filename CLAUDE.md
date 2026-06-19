@@ -8,11 +8,11 @@ scrapers pure `requests` (no Selenium / browser / JS engine).
 
 ```bash
 uv sync                                                  # set up env (Python 3.13 via uv)
-uv run compare-internet-packages -b 100000 -p mci mtn    # run: budget (toman) + providers
-uv run compare-internet-packages -h                      # all options
+uv run besarfeh -b 100000 -p mci mtn    # run: budget (toman) + providers
+uv run besarfeh -h                      # all options
 uv run ruff check . && uv run ruff format .              # lint + format (keep clean)
 # smoke-test one scraper in isolation:
-uv run python -c "from compare_internet_packages.scrapers import irancell; d=irancell(); print(len(d))"
+uv run python -c "from besarfeh.scrapers import irancell; d=irancell(); print(len(d))"
 ```
 
 Providers: `mci`, `mtn` (= Irancell), `rightel`. Sanity counts for a healthy
@@ -34,10 +34,10 @@ scrape: **mci ~40 (34 rankable), mtn ~38, rightel ~85** (as of early 2026).
 ## Architecture
 
 `src/` layout, installable package (hatchling), console script
-`compare-internet-packages` → `cli:main`.
+`besarfeh` → `cli:main`.
 
 ```
-src/compare_internet_packages/
+src/besarfeh/
   cli.py          argparse only -> ranking.compare(providers, budget)
   ranking.py      iterate SCRAPERS, concat, rank by price/meg, greedily print buys
   scrapers/

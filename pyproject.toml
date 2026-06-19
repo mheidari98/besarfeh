@@ -1,5 +1,5 @@
 [project]
-name = "compare-internet-packages"
+name = "besarfeh"
 version = "1.0.0"
 description = "Compare Iranian mobile-internet packages (MCI / Irancell / RighTel) by price-per-megabyte"
 readme = "README.md"
@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-compare-internet-packages = "compare_internet_packages.cli:main"
+besarfeh = "besarfeh.cli:main"
 
 [build-system]
 requires = ["hatchling"]

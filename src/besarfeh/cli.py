@@ -5,7 +5,10 @@ from .scrapers import SCRAPERS
 
 
 def main():
-    parser = argparse.ArgumentParser(description="compare internet packages")
+    parser = argparse.ArgumentParser(
+        prog="besarfeh",
+        description="Besarfeh (به‌صرفه) — rank Iranian mobile-internet packages by price-per-MB",
+    )
     parser.add_argument(
         "-b", "--budget", type=int, help="<Required> max budget (toman)", required=True
     )

@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from compare_internet_packages import ranking
+from besarfeh import ranking
 
 
 def _patch(monkeypatch, scrapers):

@@ -3,7 +3,7 @@
 import pandas as pd
 import requests
 
-from compare_internet_packages.scrapers._shared import http_session, warn_if_low
+from besarfeh.scrapers._shared import http_session, warn_if_low
 
 
 def test_warn_if_low_warns_on_few_rows(capsys):

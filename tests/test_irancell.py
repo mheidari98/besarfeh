@@ -1,6 +1,6 @@
 """Pure tests for the Irancell per-pack row builder (no network)."""
 
-from compare_internet_packages.scrapers.irancell import _pack_row
+from besarfeh.scrapers.irancell import _pack_row
 
 
 def _pack(**over):

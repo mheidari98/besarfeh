@@ -1,4 +1,4 @@
-# compare_internet_packages
+# besarfeh
 
 ## General info
 > Comparison of internet packages from different internet service provider in Iran
@@ -15,13 +15,13 @@ All three operators are now scraped over plain HTTP — no Chrome driver / Selen
 ## Usage
   Get the best package offered with **100000** toman budget from **mci** and **mtn** :
   ```bash
-  uv run compare-internet-packages -b 100000 -p mci mtn
+  uv run besarfeh -b 100000 -p mci mtn
   ```
   for more options :
   ```bash
-  uv run compare-internet-packages -h
+  uv run besarfeh -h
   ```
-  Installable too: `pip install .` then run `compare-internet-packages ...`.
+  Installable too: `pip install .` then run `besarfeh ...`.
 
 ---
 ## Task-Lists
