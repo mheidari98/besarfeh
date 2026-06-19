@@ -14,6 +14,7 @@ dependencies = [
 [project.scripts]
 besarfeh = "besarfeh.cli:main"
 besarfeh-refresh = "besarfeh.cli:refresh"
+besarfeh-export = "besarfeh.export:export_json"
 
 [build-system]
 requires = ["hatchling"]
