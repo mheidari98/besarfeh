@@ -47,6 +47,14 @@ def warn_if_low(df, name, expected):
 
 
 def write_csv(df, path):
-    """Persist a scrape: UTF-8-BOM, no index; create the dir if missing."""
+    """Persist a scrape: UTF-8-BOM, no index; create the dir if missing.
+
+    Rows are sorted by every column except `price`, so each pack keeps a stable
+    line across daily scrapes and a git diff shows only real price changes (the
+    commit history is the price-history dataset).
+    """
+    keys = [c for c in df.columns if c != "price"]
+    if keys:
+        df = df.sort_values(keys, kind="stable", na_position="last")
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, encoding="utf-8-sig", index=False)

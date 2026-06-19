@@ -1,7 +1,17 @@
 import argparse
+import sys
 
 from .ranking import compare
 from .scrapers import SCRAPERS
+
+
+def refresh():
+    """Re-scrape every provider (writes DB/*.csv). Entry point for the daily Action."""
+    for name, scrape in SCRAPERS.items():
+        try:
+            scrape()
+        except Exception as e:  # keep going so one dead site doesn't block the rest
+            print(f"warning: {name} scrape failed: {e}", file=sys.stderr)
 
 
 def main():

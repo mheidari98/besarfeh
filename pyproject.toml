@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 besarfeh = "besarfeh.cli:main"
+besarfeh-refresh = "besarfeh.cli:refresh"
 
 [build-system]
 requires = ["hatchling"]
