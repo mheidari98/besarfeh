@@ -1,3 +1,5 @@
+import sys
+
 import pandas as pd
 from tabulate import tabulate
 
@@ -14,7 +16,14 @@ def rank(providers, budget):
     for name, scrape in SCRAPERS.items():  # fixed order: mci, mtn, rightel
         if name not in providers:
             continue
-        df = scrape()
+        try:
+            df = scrape()
+        except Exception as e:  # one dead provider must not sink the others
+            print(f"warning: {name} scrape failed: {e}", file=sys.stderr)
+            continue
+        if df.empty or "volume" not in df:
+            print(f"warning: {name} returned no usable rows", file=sys.stderr)
+            continue
         df["provider"], df["id"] = name, df.index
         info[name] = df
         frames.append(df[df["volume"].notna()][["provider", "id", "volume", "price"]])
@@ -23,6 +32,8 @@ def rank(providers, budget):
         return []
     ranking = pd.concat(frames, ignore_index=True)
     ranking["volume"] = ranking["volume"].astype(float)
+    # drop price 0: would ZeroDivisionError below and is meaningless per-MB
+    ranking = ranking[ranking["price"] > 0]
     ranking["price/meg"] = ranking["price"] / ranking["volume"]
     ranking.sort_values("price/meg", inplace=True)
 
@@ -45,6 +56,10 @@ def rank(providers, budget):
 
 def compare(providers, budget):
     """Rank by price-per-MB and print what to buy within budget."""
-    for item in rank(providers, budget):
+    plan = rank(providers, budget)
+    if not plan:
+        print(f"No packages found within budget {budget} (or all sources failed).")
+        return
+    for item in plan:
         print(f"you should buy {item['count']} package from {item['provider']}")
         print(tabulate([item["pack"]], headers="keys", tablefmt="psql"))

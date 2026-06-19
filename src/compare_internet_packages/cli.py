@@ -1,15 +1,22 @@
 import argparse
 
 from .ranking import compare
+from .scrapers import SCRAPERS
 
 
 def main():
     parser = argparse.ArgumentParser(description="compare internet packages")
     parser.add_argument(
-        "-b", "--budget", type=int, help="<Required> max budget", required=True
+        "-b", "--budget", type=int, help="<Required> max budget (toman)", required=True
     )
     parser.add_argument(
-        "-p", "--provider", nargs="+", help="<Required> Set provider", required=True
+        "-p",
+        "--provider",
+        nargs="+",
+        choices=list(SCRAPERS),  # rejects typos like 'irancell' (it's 'mtn')
+        metavar="PROVIDER",
+        help=f"<Required> one or more of: {', '.join(SCRAPERS)}",
+        required=True,
     )
     args = parser.parse_args()
     compare(args.provider, args.budget)
