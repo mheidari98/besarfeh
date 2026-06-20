@@ -20,10 +20,10 @@
   --gold: #e0930a;
   --rate-l: 38%; /* heat lightness — tuned per theme */
 
-  /* operator brand colors — used only to encode the source */
-  --mci: #e3051b;
-  --mtn: #f6b800;
-  --rightel: #8a44b8;
+  /* operator brand colors (official): MCI blue, Irancell yellow, Rightel magenta */
+  --mci: #0095da;
+  --mtn: #febe10;
+  --rightel: #941063;
 
   --radius: 14px;
   --shadow: 0 1px 2px rgba(20, 33, 29, 0.05), 0 8px 24px rgba(20, 33, 29, 0.06);
@@ -46,7 +46,7 @@
   --on-hero-card: #e7f1ec;
   --gold: #f0b24a;
   --rate-l: 58%;
-  --rightel: #b277d8;
+  --rightel: #d061a6; /* lighter magenta for contrast on the dark board */
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
@@ -112,8 +112,8 @@ body {
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--ink);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   font-size: 17px;
   line-height: 1;
@@ -309,9 +309,35 @@ body {
   gap: 7px;
   transition: border-color 0.15s, background 0.15s;
 }
-/* duration filter sits on its own row under the operator chips */
-.chips--dur {
+/* advanced filters: a full-width block under the operator chips. On desktop it
+   is always open; on phones it folds behind .controls__toggle (see media query). */
+.controls__adv {
   flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.chips--dur,
+.chips--flags,
+.controls__adv .controls__right {
+  flex-basis: 100%;
+}
+.controls__toggle {
+  display: none; /* desktop: filters always shown */
+  margin-inline-start: auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 7px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }
 .chip__dot {
   width: 9px;
@@ -335,6 +361,7 @@ body {
 .sort select {
   font: inherit;
   font-size: 14px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px 12px;
@@ -559,6 +586,16 @@ body {
 
 /* ---------- responsive: board -> cards ---------- */
 @media (max-width: 720px) {
+  /* fold advanced filters behind the toggle so the sticky bar stays short */
+  .controls__toggle {
+    display: inline-flex;
+  }
+  .controls__adv {
+    display: none;
+  }
+  .controls.filters-open .controls__adv {
+    display: flex;
+  }
   .row {
     grid-template-columns: 38px 1fr auto;
     grid-template-areas:

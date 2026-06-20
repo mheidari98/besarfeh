@@ -81,27 +81,39 @@
     <main class="wrap">
       <div class="controls" role="region" aria-label="فیلترها">
         <div class="chips" id="providers" role="group" aria-label="اپراتور"></div>
-        <div class="chips chips--dur" id="durations" role="group" aria-label="مدت بسته"></div>
-        <div class="controls__right">
-          <input
-            id="search"
-            class="search"
-            type="search"
-            placeholder="جست‌وجوی بسته…"
-            aria-label="جست‌وجوی بسته"
-          />
-          <label class="sort">
-            <span>مرتب‌سازی</span>
-            <select id="sort">
-              <option value="ppm">قیمت هر گیگ (کم‌ترین)</option>
-              <option value="price">قیمت بسته (کم‌ترین)</option>
-              <option value="volume">حجم (بیش‌ترین)</option>
-            </select>
-          </label>
-          <label class="sort">
-            <span>حداقل حجم</span>
-            <select id="minvol" aria-label="حداقل حجم بسته"></select>
-          </label>
+        <button
+          id="filtersToggle"
+          class="controls__toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="advanced"
+        >
+          فیلترها <span aria-hidden="true">▾</span>
+        </button>
+        <div class="controls__adv" id="advanced">
+          <div class="chips chips--dur" id="durations" role="group" aria-label="مدت بسته"></div>
+          <div class="chips chips--flags" id="flags" role="group" aria-label="گزینه‌ها"></div>
+          <div class="controls__right">
+            <input
+              id="search"
+              class="search"
+              type="search"
+              placeholder="جست‌وجوی بسته…"
+              aria-label="جست‌وجوی بسته"
+            />
+            <label class="sort">
+              <span>مرتب‌سازی</span>
+              <select id="sort">
+                <option value="ppm">قیمت هر گیگ (کم‌ترین)</option>
+                <option value="price">قیمت بسته (کم‌ترین)</option>
+                <option value="volume">حجم (بیش‌ترین)</option>
+              </select>
+            </label>
+            <label class="sort">
+              <span>حداقل حجم</span>
+              <select id="minvol" aria-label="حداقل حجم بسته"></select>
+            </label>
+          </div>
         </div>
       </div>
 
