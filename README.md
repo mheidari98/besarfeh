@@ -1,32 +1,55 @@
-# compare_internet_packages
+# besarfeh · به‌صرفه
 
-## General info
-> Comparison of internet packages from different internet service provider in Iran
+> Find the most cost-effective mobile-internet package in Iran.
+> Scrapes MCI (همراه اول), Irancell (ایرانسل) and RighTel (رایتل), ranks every
+> pack by **price-per-megabyte**, and tells you the best buy within your budget.
+
+All three operators are scraped over plain HTTP — no Chrome driver / Selenium.
+
+---
+
+## Website (no install)
+
+A static comparator is published to GitHub Pages — pick a budget, see the
+cheapest-per-MB packs and the USSD/offer code to buy them, all in the browser.
+It reads the daily-refreshed CSVs in [`DB/`](DB), so the repo's git history
+doubles as a **price-history dataset**.
 
 ---
 
-## Requirements
-- python3
-- use virtual environments & install requirements packages ([gist](https://gist.github.com/mheidari98/8ae29b88bd98f8f59828b0ec112811e7)) 
-- Chrome web driver : Download it from the address below and Put it next to the main.py in the base folder 
-  ```
-  Chrome:    https://sites.google.com/chromium.org/driver/downloads
-  ```
+## CLI
 
- ---
+Requirements: [uv](https://docs.astral.sh/uv/) (manages Python + deps).
 
-## Usage
-  Get the best package offered with **100000** toman budget from **mci** and **mtn** :
-  ```bash
-  python main.py -b 100000 -p mci mtn
-  ```
-  for more options :
-  ```bash
-  python main.py -h
-  ```
+```bash
+# best packs for a 100,000-toman budget across providers
+uv run besarfeh -b 100000 -p mci mtn rightel
+uv run besarfeh -h            # all options
+```
+
+Installable: `pip install .`, then `besarfeh -b 100000 -p mci`.
+
+Extra entry points (used by CI):
+
+```bash
+uv run besarfeh-refresh       # re-scrape all providers -> DB/*.csv
+uv run besarfeh-export        # DB/*.csv -> web/data/packages.json (for the site)
+```
 
 ---
-## Task-Lists
-- [x] support Hamrahe Aval (MCI)
-- [x] support Irancell (MTN)
-- [x] support RighTel 
+
+## Develop
+
+```bash
+uv sync
+uv run pytest -q
+uv run ruff check . && uv run ruff format .
+```
+
+---
+
+## Providers
+
+- [x] Hamrahe Aval (MCI)
+- [x] Irancell (MTN)
+- [x] RighTel

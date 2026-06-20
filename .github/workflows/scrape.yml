@@ -1,0 +1,38 @@
+name: scrape
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # daily ~06:30 Asia/Tehran
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync
+      # Re-scrape all providers -> DB/*.csv. A dead provider is skipped (warning
+      # in the log), so its last-good CSV is left untouched.
+      - run: uv run besarfeh-refresh
+      - name: Commit changed CSVs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add DB/
+          if git diff --cached --quiet; then
+            echo "no price changes today"
+          else
+            git commit -m "data: daily scrape $(date -u +%F)"
+            git push
+          fi

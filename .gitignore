@@ -1,5 +1,9 @@
 # local
 chromedriver.exe
+.ruff_cache/
+
+# generated web data (built from DB/*.csv by `besarfeh-export` in CI)
+web/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
