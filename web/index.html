@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>به‌صرفه — ارزان‌ترین اینترنت همراه ایران</title>
+    <meta
+      name="description"
+      content="مقایسه‌ی بسته‌های اینترنت همراه اول، ایرانسل و رایتل بر اساس قیمت هر مگابایت. بودجه‌ات را وارد کن، به‌صرفه‌ترین بسته را پیدا کن."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e8c73'/%3E%3Cg fill='%23fff'%3E%3Crect x='7' y='18' width='4' height='7'/%3E%3Crect x='14' y='13' width='4' height='12'/%3E%3Crect x='21' y='8' width='4' height='17'/%3E%3C/g%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap topbar__inner">
+        <div class="brand">
+          <span class="brand__mark">به‌صرفه</span>
+          <span class="brand__sub">نرخ‌نامهٔ اینترنت همراه</span>
+        </div>
+        <div class="meta" id="meta" aria-live="polite"></div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap hero__inner">
+        <h1 class="hero__title">ارزان‌ترین اینترنت همراه را پیدا کن</h1>
+        <p class="hero__lead">
+          همهٔ بسته‌های همراه اول، ایرانسل و رایتل، رتبه‌بندی‌شده بر اساس
+          <strong>قیمت هر مگابایت</strong>.
+        </p>
+
+        <div class="budget">
+          <label class="budget__label" for="budget">بودجه‌ات چنده؟</label>
+          <div class="budget__field">
+            <input
+              id="budget"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="مثلاً ۱۰۰٬۰۰۰"
+              value="۱۰۰٬۰۰۰"
+            />
+            <span class="budget__unit">تومان</span>
+          </div>
+        </div>
+
+        <div class="answer" id="answer" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <main class="wrap">
+      <div class="controls" role="region" aria-label="فیلترها">
+        <div class="chips" id="providers" role="group" aria-label="اپراتور"></div>
+        <div class="controls__right">
+          <input
+            id="search"
+            class="search"
+            type="search"
+            placeholder="جست‌وجوی بسته…"
+            aria-label="جست‌وجوی بسته"
+          />
+          <label class="sort">
+            <span>مرتب‌سازی</span>
+            <select id="sort">
+              <option value="ppm">قیمت هر مگ (کم‌ترین)</option>
+              <option value="price">قیمت بسته (کم‌ترین)</option>
+              <option value="volume">حجم (بیش‌ترین)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="board" id="board" aria-label="فهرست بسته‌ها"></div>
+      <p class="empty" id="empty" hidden>بسته‌ای با این فیلترها پیدا نشد.</p>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <p>
+          قیمت‌ها به تومان و شامل مالیات‌اند. داده‌ها روزانه از سایت اپراتورها
+          به‌روزرسانی می‌شوند؛ تاریخچهٔ تغییر قیمت‌ها در گیت‌هاب موجود است.
+        </p>
+        <p class="foot__note">
+          «قیمت هر مگ» = قیمت بسته ÷ حجم آن. بسته‌های شبانه/نامحدود قابل
+          رتبه‌بندی بر این مبنا نیستند و رتبه ندارند.
+        </p>
+      </div>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

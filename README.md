@@ -1,30 +1,58 @@
-# besarfeh
+# besarfeh · به‌صرفه
 
-## General info
-> Comparison of internet packages from different internet service provider in Iran
+> Find the most cost-effective mobile-internet package in Iran.
+> Scrapes MCI (همراه اول), Irancell (ایرانسل) and RighTel (رایتل), ranks every
+> pack by **price-per-megabyte**, and tells you the best buy within your budget.
 
----
-
-## Requirements
-- [uv](https://docs.astral.sh/uv/) (manages Python and dependencies)
-
-All three operators are now scraped over plain HTTP — no Chrome driver / Selenium.
+All three operators are scraped over plain HTTP — no Chrome driver / Selenium.
 
 ---
 
-## Usage
-  Get the best package offered with **100000** toman budget from **mci** and **mtn** :
-  ```bash
-  uv run besarfeh -b 100000 -p mci mtn
-  ```
-  for more options :
-  ```bash
-  uv run besarfeh -h
-  ```
-  Installable too: `pip install .` then run `besarfeh ...`.
+## Website (no install)
+
+A static comparator is published to GitHub Pages — pick a budget, see the
+cheapest-per-MB packs and the USSD/offer code to buy them, all in the browser.
+It reads the daily-refreshed CSVs in [`DB/`](DB), so the repo's git history
+doubles as a **price-history dataset**.
+
+*(Enable it under repo Settings → Pages → Source: "GitHub Actions". The
+`pages` workflow builds and deploys [`web/`](web).)*
 
 ---
-## Task-Lists
-- [x] support Hamrahe Aval (MCI)
-- [x] support Irancell (MTN)
-- [x] support RighTel 
+
+## CLI
+
+Requirements: [uv](https://docs.astral.sh/uv/) (manages Python + deps).
+
+```bash
+# best packs for a 100,000-toman budget across providers
+uv run besarfeh -b 100000 -p mci mtn rightel
+uv run besarfeh -h            # all options
+```
+
+Installable: `pip install .`, then `besarfeh -b 100000 -p mci`.
+
+Extra entry points (used by CI):
+
+```bash
+uv run besarfeh-refresh       # re-scrape all providers -> DB/*.csv
+uv run besarfeh-export        # DB/*.csv -> web/data/packages.json (for the site)
+```
+
+---
+
+## Develop
+
+```bash
+uv sync
+uv run pytest -q
+uv run ruff check . && uv run ruff format .
+```
+
+---
+
+## Providers
+
+- [x] Hamrahe Aval (MCI)
+- [x] Irancell (MTN)
+- [x] RighTel

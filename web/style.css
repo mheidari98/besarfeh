@@ -1,0 +1,451 @@
+/* Besarfeh — a value "rate board" for Iranian mobile-internet packages.
+   Signature: the قیمت/مگ column (big tabular numerals, green->red heat). */
+
+:root {
+  --bg: #f1f5f3;
+  --surface: #ffffff;
+  --ink: #14211d;
+  --muted: #5d6b66;
+  --line: #e2e8e5;
+  --brand: #0e8c73;
+  --brand-deep: #0a4f43;
+  --brand-deeper: #073a31;
+  --gold: #e0930a;
+  /* operator brand colors — used only to encode the provider */
+  --mci: #e3051b;
+  --mtn: #f6b800;
+  --rightel: #6a2c91;
+
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 33, 29, 0.05), 0 8px 24px rgba(20, 33, 29, 0.06);
+  --maxw: 1080px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Vazirmatn", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+/* ---------- top bar ---------- */
+.topbar {
+  background: var(--surface);
+  border-block-end: 1px solid var(--line);
+}
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 14px;
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.brand__mark {
+  font-family: "Lalezar", cursive;
+  font-size: 30px;
+  line-height: 1;
+  color: var(--brand);
+}
+.brand__sub {
+  color: var(--muted);
+  font-size: 13px;
+}
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- hero ---------- */
+.hero {
+  background: radial-gradient(
+    120% 140% at 100% 0%,
+    var(--brand-deep) 0%,
+    var(--brand-deeper) 70%
+  );
+  color: #eafaf5;
+}
+.hero__inner {
+  padding-block: 40px 36px;
+}
+.hero__title {
+  margin: 0;
+  font-size: clamp(26px, 4.5vw, 42px);
+  font-weight: 900;
+  letter-spacing: -0.3px;
+}
+.hero__lead {
+  margin: 10px 0 0;
+  max-width: 46ch;
+  color: #b9ded4;
+}
+.hero__lead strong {
+  color: #fff;
+  font-weight: 700;
+}
+.budget {
+  margin-block-start: 26px;
+}
+.budget__label {
+  display: block;
+  font-size: 14px;
+  color: #9ed1c5;
+  margin-block-end: 8px;
+}
+.budget__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  box-shadow: var(--shadow);
+  max-width: 100%;
+}
+#budget {
+  border: 0;
+  outline: 0;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: clamp(24px, 5vw, 34px);
+  color: var(--ink);
+  width: 9ch;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.budget__unit {
+  color: var(--muted);
+  font-weight: 500;
+}
+.answer {
+  margin-block-start: 22px;
+  display: grid;
+  gap: 10px;
+}
+.answer__head {
+  font-size: 14px;
+  color: #9ed1c5;
+}
+.buy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.buy--top {
+  background: #fff;
+  color: var(--ink);
+  border-color: #fff;
+}
+.buy__count {
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--brand);
+}
+.buy--top .buy__name {
+  font-weight: 700;
+}
+.buy__rate {
+  margin-inline-start: auto;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.buy__rate small {
+  font-weight: 500;
+  color: var(--muted);
+}
+.buy__total {
+  font-size: 13px;
+  color: #cdeee6;
+}
+.buy--top .buy__total {
+  color: var(--muted);
+}
+
+/* ---------- controls (sticky) ---------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding-block: 16px;
+  border-block-end: 1px solid var(--line);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.chip__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c, var(--muted));
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--brand);
+  background: #e7f4f0;
+  font-weight: 700;
+}
+.controls__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search,
+.sort select {
+  font: inherit;
+  font-size: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.search {
+  width: 180px;
+  max-width: 42vw;
+}
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- the board ---------- */
+.board {
+  display: grid;
+  gap: 8px;
+  padding-block: 18px 40px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1.7fr) 92px 132px 104px 124px;
+  grid-template-areas: "rank name vol price rate copy";
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--p, var(--line));
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.row:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+.row--top {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand) inset;
+}
+.rank {
+  grid-area: rank;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.row--top .rank {
+  color: var(--gold);
+}
+.cell__name {
+  grid-area: name;
+  min-width: 0;
+}
+.name {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--p, var(--muted));
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+.tag--mtn {
+  color: #3a2c00;
+}
+.sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-block-start: 2px;
+}
+.vol {
+  grid-area: vol;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.price {
+  grid-area: price;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.price small {
+  color: var(--muted);
+  font-weight: 500;
+}
+.rate {
+  grid-area: rate;
+  text-align: center;
+  font-weight: 900;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--heat, var(--ink));
+  line-height: 1.1;
+}
+.rate small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.rate--none {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+}
+.cell__buy {
+  grid-area: copy;
+}
+.copy {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 1px dashed var(--line);
+  background: #f7faf9;
+  color: var(--ink);
+  border-radius: 9px;
+  padding: 7px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s;
+}
+.copy:hover {
+  border-color: var(--brand);
+}
+.copy--done {
+  background: #e7f4f0;
+  border-style: solid;
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.copy span {
+  color: var(--muted);
+  font-weight: 500;
+}
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding-block: 40px;
+}
+
+/* ---------- footer ---------- */
+.foot {
+  border-block-start: 1px solid var(--line);
+  background: var(--surface);
+}
+.foot__inner {
+  padding-block: 24px 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.foot__note {
+  margin-block-start: 6px;
+}
+
+/* ---------- responsive: board -> cards ---------- */
+@media (max-width: 720px) {
+  .row {
+    grid-template-columns: 38px 1fr auto;
+    grid-template-areas:
+      "rank name rate"
+      "rank vol price"
+      "rank copy copy";
+    gap: 6px 12px;
+  }
+  .rank {
+    align-self: start;
+  }
+  .rate {
+    text-align: start;
+  }
+  .vol,
+  .price {
+    font-size: 13px;
+    align-self: center;
+  }
+  .price {
+    text-align: end;
+  }
+}
+
+/* ---------- a11y ---------- */
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .row {
+    animation: rise 0.4s ease both;
+    animation-delay: calc(var(--i, 0) * 18ms);
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
