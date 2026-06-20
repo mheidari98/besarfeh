@@ -1,24 +1,53 @@
-/* Besarfeh — a value "rate board" for Iranian mobile-internet packages.
-   Signature: the قیمت/مگ column (big tabular numerals, green->red heat). */
+/* Besarfeh — a value "rate board" (نرخ‌نامه) for Iranian mobile-internet packages.
+   Signature: the قیمت/مگ column — big tabular numerals on a green→red heat scale,
+   reading like an illuminated exchange board (especially in dark mode). */
 
 :root {
-  --bg: #f1f5f3;
+  --bg: #eef3f1;
   --surface: #ffffff;
+  --surface-2: #f7faf9;
   --ink: #14211d;
   --muted: #5d6b66;
   --line: #e2e8e5;
   --brand: #0e8c73;
-  --brand-deep: #0a4f43;
-  --brand-deeper: #073a31;
+  --brand-ink: #0a4f43;
+  --hero-1: #0a4f43;
+  --hero-2: #073a31;
+  --hero-ink: #eafaf5;
+  --hero-lead: #b9ded4;
+  --hero-soft: #9ed1c5;
+  --on-hero-card: #14211d;
   --gold: #e0930a;
-  /* operator brand colors — used only to encode the provider */
+  --rate-l: 38%; /* heat lightness — tuned per theme */
+
+  /* operator brand colors — used only to encode the source */
   --mci: #e3051b;
   --mtn: #f6b800;
-  --rightel: #6a2c91;
+  --rightel: #8a44b8;
 
   --radius: 14px;
   --shadow: 0 1px 2px rgba(20, 33, 29, 0.05), 0 8px 24px rgba(20, 33, 29, 0.06);
   --maxw: 1080px;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1411;
+  --surface: #14201c;
+  --surface-2: #18261f;
+  --ink: #e7f1ec;
+  --muted: #8ba49c;
+  --line: #243530;
+  --brand: #2fc6a4;
+  --brand-ink: #8fe7d3;
+  --hero-1: #0d3b32;
+  --hero-2: #07211c;
+  --hero-lead: #9cc8bd;
+  --hero-soft: #79b3a6;
+  --on-hero-card: #e7f1ec;
+  --gold: #f0b24a;
+  --rate-l: 58%;
+  --rightel: #b277d8;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -34,6 +63,7 @@ body {
   font-family: "Vazirmatn", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.6;
+  transition: background 0.2s, color 0.2s;
 }
 .wrap {
   max-width: var(--maxw);
@@ -68,20 +98,38 @@ body {
   color: var(--muted);
   font-size: 13px;
 }
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .meta {
   color: var(--muted);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
+.theme-btn {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.theme-btn:hover {
+  border-color: var(--brand);
+}
 
 /* ---------- hero ---------- */
 .hero {
-  background: radial-gradient(
-    120% 140% at 100% 0%,
-    var(--brand-deep) 0%,
-    var(--brand-deeper) 70%
-  );
-  color: #eafaf5;
+  background: radial-gradient(120% 140% at 100% 0%, var(--hero-1) 0%, var(--hero-2) 70%);
+  color: var(--hero-ink);
 }
 .hero__inner {
   padding-block: 40px 36px;
@@ -95,19 +143,21 @@ body {
 .hero__lead {
   margin: 10px 0 0;
   max-width: 46ch;
-  color: #b9ded4;
+  color: var(--hero-lead);
 }
 .hero__lead strong {
   color: #fff;
   font-weight: 700;
 }
+
+/* ---------- budget ---------- */
 .budget {
   margin-block-start: 26px;
 }
 .budget__label {
   display: block;
   font-size: 14px;
-  color: #9ed1c5;
+  color: var(--hero-soft);
   margin-block-end: 8px;
 }
 .budget__field {
@@ -126,15 +176,49 @@ body {
   font-family: inherit;
   font-weight: 900;
   font-size: clamp(24px, 5vw, 34px);
-  color: var(--ink);
+  color: #14211d;
   width: 9ch;
   background: transparent;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+#budget::placeholder {
+  color: #aab8b3;
+  font-weight: 700;
 }
 .budget__unit {
-  color: var(--muted);
+  color: #5d6b66;
   font-weight: 500;
 }
+.budget__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 12px;
+}
+.preset {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--hero-ink);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s, border-color 0.15s;
+}
+.preset:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.preset[aria-pressed="true"] {
+  background: #fff;
+  color: var(--brand-ink);
+  border-color: #fff;
+  font-weight: 700;
+}
+
+/* ---------- answer ---------- */
 .answer {
   margin-block-start: 22px;
   display: grid;
@@ -142,7 +226,7 @@ body {
 }
 .answer__head {
   font-size: 14px;
-  color: #9ed1c5;
+  color: var(--hero-soft);
 }
 .buy {
   display: flex;
@@ -156,8 +240,12 @@ body {
 }
 .buy--top {
   background: #fff;
-  color: var(--ink);
+  color: var(--on-hero-card);
   border-color: #fff;
+}
+:root[data-theme="dark"] .buy--top {
+  background: var(--surface);
+  border-color: var(--brand);
 }
 .buy__count {
   font-weight: 900;
@@ -225,7 +313,7 @@ body {
 }
 .chip[aria-pressed="true"] {
   border-color: var(--brand);
-  background: #e7f4f0;
+  background: color-mix(in srgb, var(--brand) 14%, var(--surface));
   font-weight: 700;
 }
 .controls__right {
@@ -263,7 +351,7 @@ body {
 }
 .row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1.7fr) 92px 132px 104px 124px;
+  grid-template-columns: 44px minmax(0, 1.7fr) 92px 132px 104px 132px;
   grid-template-areas: "rank name vol price rate copy";
   align-items: center;
   gap: 14px;
@@ -340,7 +428,7 @@ body {
   font-weight: 900;
   font-size: 22px;
   font-variant-numeric: tabular-nums;
-  color: var(--heat, var(--ink));
+  color: hsl(var(--hue, 150) 60% var(--rate-l));
   line-height: 1.1;
 }
 .rate small {
@@ -354,36 +442,58 @@ body {
   font-size: 15px;
   font-weight: 500;
 }
+
+/* ---------- buy action ---------- */
 .cell__buy {
   grid-area: copy;
 }
-.copy {
+.buy-act {
   width: 100%;
   font: inherit;
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  border: 1px dashed var(--line);
-  background: #f7faf9;
-  color: var(--ink);
   border-radius: 9px;
   padding: 7px 10px;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, background 0.15s;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.copy {
+  border: 1px dashed var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.copy span {
+  color: var(--muted);
+  font-weight: 500;
+  margin-inline-end: 4px;
 }
 .copy:hover {
   border-color: var(--brand);
 }
 .copy--done {
-  background: #e7f4f0;
+  background: color-mix(in srgb, var(--brand) 16%, var(--surface));
   border-style: solid;
   border-color: var(--brand);
   color: var(--brand);
 }
-.copy span {
-  color: var(--muted);
-  font-weight: 500;
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  border: 1px solid var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface));
+  color: var(--brand);
+}
+.link:hover {
+  background: color-mix(in srgb, var(--brand) 22%, var(--surface));
+}
+.buy-act__ext {
+  font-size: 11px;
 }
 .empty {
   text-align: center;
@@ -428,6 +538,9 @@ body {
   }
   .price {
     text-align: end;
+  }
+  .cell__buy {
+    margin-block-start: 4px;
   }
 }
 

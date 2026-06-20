@@ -44,7 +44,7 @@ source of truth for valid enum values.
 | `id` | Mongo ObjectId of the pack | ⬜ |
 | `desc.fa` | HTML blurb incl. CRA regulator approval code/link | ⬜ |
 | `specification_contents[key=simcard_type].value` | `prepaid` / `postpaid` / `prepaid-postpaid` | ⬜ could split pricing per sim type |
-| `prepaid_offer_code` / `postpaid_offer_code` | USSD/offer codes to actually buy the pack | ⬜ useful for a "how to buy" output |
+| `prepaid_offer_code` / `postpaid_offer_code` | internal SKU offer codes (e.g. `PO1960OEB`) — **NOT dialable**; the API exposes no per-pack USSD, packs buy online/app only | ✅ `offer-code` (debug only; web links to the operator buy page instead) |
 | `ldms_offer_code` | Alt offer code (often empty) | ⬜ |
 | `specification_contents[key=ussd].desc.fa` | USSD purchase code | ⬜ mostly empty |
 | `specification_contents[key=dial_number].desc.fa` | Dial number | ⬜ usually empty |
@@ -60,6 +60,10 @@ source of truth for valid enum values.
   (night/region restricted) are always dropped — they can't be ranked per-MB
   fairly. All `sub_title.fa` are empty today, so this is dormant for now; if a
   toggle to include them is ever wanted, re-add an `--allow-limited` CLI flag.
-- **Offer codes**: Irancell `prepaid_offer_code` is now scraped (offer-code
-  column). MCI `.purchase-btn[data-package-code]` is still unscraped — adding it
-  would give MCI an online-purchase code alongside its USSD code.
+- **Offer codes are not buy codes**: Irancell `prepaid_offer_code` and RighTel
+  `pricePlanOfferCode` are internal SKU ids — users can't dial them, and both APIs
+  return no per-pack USSD (`purchaseUssdCode` is null on every RighTel pack). Only
+  MCI ships a real dialable USSD (`*100*…#`). The web UI reflects this: MCI shows a
+  copyable dial code; Irancell/RighTel show a "خرید آنلاین" link to the operator's
+  own buy page (irancell.ir / package.rightel.ir/packagesList). The scraped
+  `offer-code` column is kept as debug data only.

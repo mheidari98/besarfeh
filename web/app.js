@@ -1,24 +1,29 @@
 "use strict";
 
-// --- provider metadata (label + brand color, used only to encode the source) ---
+// --- provider metadata: label, brand color, and where to actually buy a pack ---
+//   mci     -> packs buy with a dialable USSD code (we show & copy it)
+//   mtn/rightel -> their "offer codes" aren't dialable; send the user to the
+//                  operator's own buy page instead (verified 2026-06).
 const PROV = {
-  mci: { label: "همراه اول", varc: "--mci" },
-  mtn: { label: "ایرانسل", varc: "--mtn", tagMod: "tag--mtn" },
-  rightel: { label: "رایتل", varc: "--rightel" },
+  mci: { label: "همراه اول", varc: "--mci", buy: "https://mci.ir/internet-plans" },
+  mtn: {
+    label: "ایرانسل",
+    varc: "--mtn",
+    tagMod: "tag--mtn",
+    buy: "https://irancell.ir/o/1001/mobile-internet-packages",
+  },
+  rightel: { label: "رایتل", varc: "--rightel", buy: "https://package.rightel.ir/packagesList" },
 };
 const ORDER = ["mci", "mtn", "rightel"];
+const PRESETS = [50000, 100000, 200000, 500000, 1000000];
 
-// --- formatting (Persian digits + grouping) ---
+// --- formatting ---
 const faNum = (n, frac = 0) =>
-  new Intl.NumberFormat("fa-IR", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: frac,
-    useGrouping: true,
-  }).format(n);
-
+  new Intl.NumberFormat("fa-IR", { maximumFractionDigits: frac, useGrouping: true }).format(n);
 const toman = (n) => faNum(Math.round(n));
 const volume = (mb) =>
   mb == null ? "—" : mb >= 1024 ? `${faNum(mb / 1024, 1)} گیگ` : `${faNum(mb)} مگ`;
+// accept English OR Persian/Arabic digits, ignore everything else (commas, spaces…)
 const parseDigits = (s) =>
   Number(
     String(s)
@@ -26,31 +31,52 @@ const parseDigits = (s) =>
       .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
       .replace(/[^\d]/g, ""),
   ) || 0;
+// compact preset label: 50000 -> "۵۰ هزار", 1000000 -> "۱ میلیون"
+const presetLabel = (n) =>
+  n >= 1e6 ? `${faNum(n / 1e6)} میلیون` : `${faNum(n / 1e3)} هزار`;
 
-// price/MB -> color, green (cheap) to red (expensive) across the dataset
-function heatScale(values) {
+// price/MB -> hue (green=cheap … red=expensive); lightness lives in CSS so it
+// adapts to light/dark themes.
+function heatHue(values) {
   const lo = Math.min(...values);
   const hi = Math.max(...values);
-  return (v) => {
-    const t = hi === lo ? 0 : (v - lo) / (hi - lo);
-    return `hsl(${Math.round(150 * (1 - t))} 62% 38%)`;
-  };
+  return (v) => Math.round(150 * (1 - (hi === lo ? 0 : (v - lo) / (hi - lo))));
 }
 
-// --- state ---
+// --- state (mirrored to the URL so a view is shareable) ---
 let ALL = [];
-let HEAT = () => "var(--ink)";
+let HUE = () => 150;
+let bestPpm = Infinity;
 const state = { providers: new Set(), q: "", sort: "ppm", budget: 100000 };
-
 const $ = (s) => document.querySelector(s);
 
+function readUrl() {
+  const p = new URLSearchParams(location.search);
+  if (p.has("b")) state.budget = parseDigits(p.get("b"));
+  if (p.has("q")) state.q = p.get("q");
+  if (["ppm", "price", "volume"].includes(p.get("s"))) state.sort = p.get("s");
+  (p.get("p") || "").split(",").filter((k) => PROV[k]).forEach((k) => state.providers.add(k));
+}
+
+function writeUrl() {
+  const p = new URLSearchParams();
+  if (state.budget && state.budget !== 100000) p.set("b", state.budget);
+  if (state.q) p.set("q", state.q);
+  if (state.sort !== "ppm") p.set("s", state.sort);
+  if (state.providers.size) p.set("p", [...state.providers].join(","));
+  const qs = p.toString();
+  history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+}
+
 async function load() {
+  readUrl();
   try {
     const res = await fetch("./data/packages.json", { cache: "no-cache" });
     const json = await res.json();
     ALL = json.packages || [];
     const rates = ALL.filter((p) => p.price_per_mb != null).map((p) => p.price_per_mb);
-    HEAT = heatScale(rates);
+    HUE = heatHue(rates);
+    bestPpm = Math.min(...rates);
     const when = res.headers.get("last-modified");
     $("#meta").textContent =
       `${faNum(ALL.length)} بسته` +
@@ -61,10 +87,56 @@ async function load() {
     $("#empty").textContent = "دریافت داده‌ها ناموفق بود. کمی بعد دوباره امتحان کن.";
     return;
   }
+  initTheme();
+  buildPresets();
   buildChips();
   bindControls();
   renderAnswer();
   renderBoard();
+}
+
+// --- theme ---
+function initTheme() {
+  const btn = $("#theme");
+  const paint = () =>
+    (btn.textContent = document.documentElement.dataset.theme === "dark" ? "☀︎" : "☾");
+  paint();
+  btn.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {}
+    paint();
+  });
+}
+
+// --- budget: presets + a plain field (typed value is left exactly as entered) ---
+function buildPresets() {
+  const box = $("#presets");
+  PRESETS.forEach((n) => {
+    const b = document.createElement("button");
+    b.className = "preset";
+    b.type = "button";
+    b.dataset.amount = n;
+    b.textContent = presetLabel(n);
+    box.appendChild(b);
+  });
+  box.addEventListener("click", (e) => {
+    const btn = e.target.closest(".preset");
+    if (!btn) return;
+    state.budget = Number(btn.dataset.amount);
+    $("#budget").value = state.budget;
+    markPresets();
+    renderAnswer();
+    writeUrl();
+  });
+}
+
+function markPresets() {
+  [...$("#presets").children].forEach((b) =>
+    b.setAttribute("aria-pressed", String(Number(b.dataset.amount) === state.budget)),
+  );
 }
 
 function buildChips() {
@@ -74,51 +146,62 @@ function buildChips() {
     b.className = "chip";
     b.type = "button";
     b.dataset.key = key;
-    b.setAttribute("aria-pressed", key === "all" ? "true" : "false");
     b.innerHTML =
       (varc ? `<span class="chip__dot" style="--c:var(${varc})"></span>` : "") + label;
     box.appendChild(b);
   };
   mk("all", "همه");
   ORDER.forEach((k) => mk(k, PROV[k].label, PROV[k].varc));
+  markChips();
 
   box.addEventListener("click", (e) => {
     const btn = e.target.closest(".chip");
     if (!btn) return;
     const key = btn.dataset.key;
     if (key === "all") state.providers.clear();
-    else {
-      state.providers.has(key) ? state.providers.delete(key) : state.providers.add(key);
-    }
-    [...box.children].forEach((c) =>
-      c.setAttribute(
-        "aria-pressed",
-        c.dataset.key === "all"
-          ? String(state.providers.size === 0)
-          : String(state.providers.has(c.dataset.key)),
-      ),
-    );
+    else state.providers.has(key) ? state.providers.delete(key) : state.providers.add(key);
+    markChips();
     renderBoard();
+    writeUrl();
   });
+}
+
+function markChips() {
+  [...$("#providers").children].forEach((c) =>
+    c.setAttribute(
+      "aria-pressed",
+      c.dataset.key === "all"
+        ? String(state.providers.size === 0)
+        : String(state.providers.has(c.dataset.key)),
+    ),
+  );
 }
 
 function bindControls() {
   const budget = $("#budget");
-  state.budget = parseDigits(budget.value);
+  budget.value = state.budget || "";
+  markPresets();
   budget.addEventListener("input", () => {
     state.budget = parseDigits(budget.value);
+    markPresets();
     renderAnswer();
+    writeUrl();
   });
-  budget.addEventListener("change", () => {
-    budget.value = state.budget ? faNum(state.budget) : "";
-  });
-  $("#search").addEventListener("input", (e) => {
+
+  const search = $("#search");
+  search.value = state.q;
+  search.addEventListener("input", (e) => {
     state.q = e.target.value.trim();
     renderBoard();
+    writeUrl();
   });
-  $("#sort").addEventListener("change", (e) => {
+
+  const sort = $("#sort");
+  sort.value = state.sort;
+  sort.addEventListener("change", (e) => {
     state.sort = e.target.value;
     renderBoard();
+    writeUrl();
   });
 }
 
@@ -183,31 +266,22 @@ function renderBoard() {
   }[state.sort];
   list.sort(cmp);
 
-  const bestPpm = Math.min(
-    ...ALL.filter((p) => p.price_per_mb != null).map((p) => p.price_per_mb),
-  );
-  const board = $("#board");
-  board.innerHTML = "";
   $("#empty").hidden = list.length > 0;
+  $("#board").innerHTML = list
+    .map((p, i) => {
+      const pv = PROV[p.provider];
+      const rate =
+        p.price_per_mb == null
+          ? `<div class="rate rate--none">—<small>بدون رتبه</small></div>`
+          : `<div class="rate" style="--hue:${HUE(p.price_per_mb)}">${faNum(p.price_per_mb, 1)}<small>تومان/مگ</small></div>`;
 
-  list.forEach((p, i) => {
-    const pv = PROV[p.provider];
-    const isTop = p.price_per_mb === bestPpm;
-    const row = document.createElement("div");
-    row.className = "row" + (isTop ? " row--top" : "");
-    row.style.cssText = `--p:var(${pv.varc});--i:${i}`;
+      // mci: dialable USSD -> copy button. others: link to operator's buy page.
+      const ussd = p.provider === "mci" && p.buy_code && /^\*/.test(p.buy_code);
+      const buy = ussd
+        ? `<button class="buy-act copy" type="button" data-code="${escape(p.buy_code)}"><span>کد دستوری</span>${escape(p.buy_code)}</button>`
+        : `<a class="buy-act link" href="${pv.buy}" target="_blank" rel="noopener">خرید آنلاین<span class="buy-act__ext" aria-hidden="true">↗</span></a>`;
 
-    const rate =
-      p.price_per_mb == null
-        ? `<div class="rate rate--none">—<small>بدون رتبه</small></div>`
-        : `<div class="rate" style="--heat:${HEAT(p.price_per_mb)}">${faNum(p.price_per_mb, 1)}<small>تومان/مگ</small></div>`;
-
-    const code = p.buy_code && p.buy_code !== "-";
-    const buy = code
-      ? `<button class="copy" type="button" data-code="${escape(p.buy_code)}"><span>کد خرید</span> ${escape(p.buy_code)}</button>`
-      : `<button class="copy" type="button" disabled><span>بدون کد</span></button>`;
-
-    row.innerHTML = `
+      return `<div class="row${p.price_per_mb === bestPpm ? " row--top" : ""}" style="--p:var(${pv.varc});--i:${Math.min(i, 30)}">
       <div class="rank">${faNum(i + 1)}</div>
       <div class="cell__name">
         <div class="name"><span class="tag ${pv.tagMod || ""}">${pv.label}</span>${escape(p.name)}</div>
@@ -216,9 +290,9 @@ function renderBoard() {
       <div class="vol">${volume(p.volume_mb)}</div>
       <div class="price">${toman(p.price)} <small>ت</small></div>
       ${rate}
-      <div class="cell__buy">${buy}</div>`;
-    board.appendChild(row);
-  });
+      <div class="cell__buy">${buy}</div></div>`;
+    })
+    .join("");
 }
 
 document.addEventListener("click", (e) => {

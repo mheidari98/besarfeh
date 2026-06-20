@@ -108,9 +108,8 @@ def rightel():
             }
         )
 
-    df = pd.DataFrame.from_dict(rows)
-    df = df.drop_duplicates(subset=["pack-name", "type", "price"]).reset_index(
-        drop=True
+    df = pd.DataFrame.from_dict(rows).drop_duplicates(
+        subset=["pack-name", "type", "price"], ignore_index=True
     )
     write_csv(df, OUTPUT_CSV)
     return warn_if_low(df, "rightel", 85)

@@ -11,7 +11,8 @@ URL = "https://mci.ir/internet-plans"
 #   new-sub   -> only buyable by new subscribers ("ویژه مشترکین جدید")
 UNMEASURABLE_TYPES = {"unlimited", "sobhanet", "new-sub"}
 
-TAX_RATE = 1.09  # MCI HTML exposes no VAT field; hardcode 9% (checked 2026-06)
+TAX_RATE = 1.10  # MCI HTML exposes no VAT field; hardcode VAT. Site note says
+# "مبلغ مالیات بر ارزش افزوده %10 ... به قیمت بسته‌ها افزوده" -> 10% (checked 2026-06).
 
 
 def _clean(node):

@@ -34,10 +34,12 @@ _MAP = {
 }
 
 
+def _isnan(v):
+    return v is None or (isinstance(v, float) and math.isnan(v))
+
+
 def _txt(v):
-    if v is None or (isinstance(v, float) and math.isnan(v)):
-        return ""
-    return str(v).strip()
+    return "" if _isnan(v) else str(v).strip()
 
 
 def to_records(db_dir="DB"):
@@ -47,11 +49,7 @@ def to_records(db_dir="DB"):
         df = pd.read_csv(Path(db_dir) / m["file"])
         for _, row in df.iterrows():
             vol = row.get("volume")
-            vol = (
-                None
-                if vol is None or (isinstance(vol, float) and math.isnan(vol))
-                else float(vol)
-            )
+            vol = None if _isnan(vol) else float(vol)
             price = round(float(row["price"]))
             out.append(
                 {

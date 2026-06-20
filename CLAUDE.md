@@ -84,8 +84,8 @@ the brand — legacy names like `notrino-plans.js` survive in the markup, ignore
 - Return: `volume` is `NaN` for `UNMEASURABLE_TYPES = {unlimited, sobhanet, new-sub}`
   (fair-usage cap / night-only / new-subscriber — not rankable per-MB). `price` is
   `data-price × TAX_RATE`, **unrounded on purpose** (rounding shifts the budget
-  math). `TAX_RATE = 1.09` is hardcoded — MCI's HTML has no VAT field; bump if Iran
-  VAT (now ~10%) needs exactness.
+  math). `TAX_RATE = 1.10` is hardcoded — MCI's HTML has no VAT field, but the page
+  footnote states VAT is **10%**, added on top of the listed (pre-VAT, toman) price.
 
 ### Irancell (`scrapers/irancell.py`) — JSON API
 - GET the page, regex `packages-id="([a-f0-9]{24})"`, then GET

@@ -8,10 +8,21 @@
       name="description"
       content="مقایسه‌ی بسته‌های اینترنت همراه اول، ایرانسل و رایتل بر اساس قیمت هر مگابایت. بودجه‌ات را وارد کن، به‌صرفه‌ترین بسته را پیدا کن."
     />
+    <meta name="theme-color" content="#0e8c73" />
+    <meta name="color-scheme" content="light dark" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e8c73'/%3E%3Cg fill='%23fff'%3E%3Crect x='7' y='18' width='4' height='7'/%3E%3Crect x='14' y='13' width='4' height='12'/%3E%3Crect x='21' y='8' width='4' height='17'/%3E%3C/g%3E%3C/svg%3E"
     />
+    <!-- apply saved theme before first paint to avoid a flash -->
+    <script>
+      try {
+        const t =
+          localStorage.getItem("theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -27,7 +38,16 @@
           <span class="brand__mark">به‌صرفه</span>
           <span class="brand__sub">نرخ‌نامهٔ اینترنت همراه</span>
         </div>
-        <div class="meta" id="meta" aria-live="polite"></div>
+        <div class="topbar__right">
+          <div class="meta" id="meta" aria-live="polite"></div>
+          <button
+            id="theme"
+            class="theme-btn"
+            type="button"
+            aria-label="تغییر روشن/تاریک"
+            title="روشن/تاریک"
+          ></button>
+        </div>
       </div>
     </header>
 
@@ -40,18 +60,18 @@
         </p>
 
         <div class="budget">
-          <label class="budget__label" for="budget">بودجه‌ات چنده؟</label>
+          <label class="budget__label" for="budget">چقدر می‌خواهی خرج کنی؟</label>
           <div class="budget__field">
             <input
               id="budget"
               type="text"
               inputmode="numeric"
               autocomplete="off"
-              placeholder="مثلاً ۱۰۰٬۰۰۰"
-              value="۱۰۰٬۰۰۰"
+              placeholder="مثلاً 100000"
             />
             <span class="budget__unit">تومان</span>
           </div>
+          <div class="budget__presets" id="presets" role="group" aria-label="مبالغ پرکاربرد"></div>
         </div>
 
         <div class="answer" id="answer" aria-live="polite"></div>
@@ -87,12 +107,13 @@
     <footer class="foot">
       <div class="wrap foot__inner">
         <p>
-          قیمت‌ها به تومان و شامل مالیات‌اند. داده‌ها روزانه از سایت اپراتورها
-          به‌روزرسانی می‌شوند؛ تاریخچهٔ تغییر قیمت‌ها در گیت‌هاب موجود است.
+          قیمت‌ها به تومان و شامل مالیات ارزش افزوده‌اند. داده‌ها روزانه از سایت
+          اپراتورها به‌روزرسانی می‌شوند؛ تاریخچهٔ تغییر قیمت‌ها در گیت‌هاب موجود است.
         </p>
         <p class="foot__note">
           «قیمت هر مگ» = قیمت بسته ÷ حجم آن. بسته‌های شبانه/نامحدود قابل
-          رتبه‌بندی بر این مبنا نیستند و رتبه ندارند.
+          رتبه‌بندی بر این مبنا نیستند و رتبه ندارند. خرید بستهٔ همراه اول با کد
+          دستوری؛ ایرانسل و رایتل از سایت خودشان.
         </p>
       </div>
     </footer>

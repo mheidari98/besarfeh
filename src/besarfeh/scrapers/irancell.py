@@ -66,7 +66,7 @@ def irancell():
     )
     resp.raise_for_status()
 
-    rows = [_pack_row(p) for p in resp.json()]
-    df = pd.DataFrame.from_dict([r for r in rows if r])
+    rows = [row for p in resp.json() if (row := _pack_row(p))]
+    df = pd.DataFrame.from_dict(rows)
     write_csv(df, OUTPUT_CSV)
     return warn_if_low(df, "mtn", 38)
