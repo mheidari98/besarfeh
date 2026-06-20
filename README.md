@@ -15,9 +15,6 @@ cheapest-per-MB packs and the USSD/offer code to buy them, all in the browser.
 It reads the daily-refreshed CSVs in [`DB/`](DB), so the repo's git history
 doubles as a **price-history dataset**.
 
-*(Enable it under repo Settings → Pages → Source: "GitHub Actions". The
-`pages` workflow builds and deploys [`web/`](web).)*
-
 ---
 
 ## CLI

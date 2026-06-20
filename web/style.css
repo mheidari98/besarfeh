@@ -319,7 +319,6 @@ body {
   gap: 12px;
 }
 .chips--dur,
-.chips--flags,
 .controls__adv .controls__right {
   flex-basis: 100%;
 }

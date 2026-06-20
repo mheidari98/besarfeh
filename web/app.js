@@ -33,13 +33,6 @@ const MINVOL = [
   { v: 10240, label: "۱۰ گیگ به بالا" },
   { v: 51200, label: "۵۰ گیگ به بالا" },
 ];
-// optional "hide" toggles for packs that aren't freely buyable / always-on and
-// so distort the per-GB ranking. Backed by the same `flags` the badges use; the
-// "morning" flag stays badge-only (too rare to warrant its own toggle).
-const FLAG_FILTERS = [
-  { key: "night", label: "بدون شبانه" },
-  { key: "new_sub", label: "بدون ویژهٔ مشترکین جدید" },
-];
 // caveats parsed into `flags` by the export step -> small badge on the card.
 const BADGES = {
   new_sub: { label: "ویژهٔ مشترکین جدید", cls: "badge--warn" },
@@ -86,7 +79,7 @@ function heatHue(values) {
 let ALL = [];
 let HUE = () => 150;
 let bestPpm = Infinity;
-const state = { providers: new Set(), q: "", sort: "ppm", budget: 100000, dur: "", minvol: 0, excl: new Set() };
+const state = { providers: new Set(), q: "", sort: "ppm", budget: 100000, dur: "", minvol: 0 };
 const $ = (s) => document.querySelector(s);
 
 function readUrl() {
@@ -97,8 +90,6 @@ function readUrl() {
   if (DUR_BUCKETS.some((b) => b.key === p.get("d"))) state.dur = p.get("d");
   if (p.has("v")) state.minvol = parseDigits(p.get("v"));
   (p.get("p") || "").split(",").filter((k) => PROV[k]).forEach((k) => state.providers.add(k));
-  (p.get("x") || "").split(",").filter((k) => FLAG_FILTERS.some((f) => f.key === k))
-    .forEach((k) => state.excl.add(k));
 }
 
 function writeUrl() {
@@ -109,7 +100,6 @@ function writeUrl() {
   if (state.dur) p.set("d", state.dur);
   if (state.minvol) p.set("v", state.minvol);
   if (state.providers.size) p.set("p", [...state.providers].join(","));
-  if (state.excl.size) p.set("x", [...state.excl].join(","));
   const qs = p.toString();
   history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
 }
@@ -137,7 +127,6 @@ async function load() {
   buildPresets();
   buildChips();
   buildDurChips();
-  buildFlagChips();
   bindControls();
   renderAnswer();
   renderBoard();
@@ -257,36 +246,6 @@ function markDurChips() {
   );
 }
 
-// flag chips: multi-select "hide" toggles (pressed = exclude that flag)
-function buildFlagChips() {
-  const box = $("#flags");
-  FLAG_FILTERS.forEach(({ key, label }) => {
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.type = "button";
-    b.dataset.flag = key;
-    b.textContent = label;
-    box.appendChild(b);
-  });
-  markFlagChips();
-  box.addEventListener("click", (e) => {
-    const btn = e.target.closest(".chip");
-    if (!btn) return;
-    const key = btn.dataset.flag;
-    state.excl.has(key) ? state.excl.delete(key) : state.excl.add(key);
-    markFlagChips();
-    renderAnswer();
-    renderBoard();
-    writeUrl();
-  });
-}
-
-function markFlagChips() {
-  [...$("#flags").children].forEach((c) =>
-    c.setAttribute("aria-pressed", String(state.excl.has(c.dataset.flag))),
-  );
-}
-
 function bindControls() {
   const budget = $("#budget");
   budget.value = state.budget || "";
@@ -337,9 +296,9 @@ function bindControls() {
   });
 }
 
-// rows passing the active provider / duration / min-volume / flag filters.
-// Shared by the board AND the budget answer so the suggestion always reflects
-// the filters in view. Search (q) is board-only (withSearch).
+// rows passing the active provider / duration / min-volume filters. Shared by
+// the board AND the budget answer so the suggestion always reflects the filters
+// in view. Search (q) is board-only (withSearch).
 function filtered(withSearch) {
   let list = ALL.slice();
   if (state.providers.size) list = list.filter((p) => state.providers.has(p.provider));
@@ -348,7 +307,6 @@ function filtered(withSearch) {
     list = list.filter((p) => p.duration_days != null && bucket.test(p.duration_days));
   }
   if (state.minvol) list = list.filter((p) => (p.volume_mb ?? 0) >= state.minvol);
-  if (state.excl.size) list = list.filter((p) => !(p.flags || []).some((f) => state.excl.has(f)));
   if (withSearch && state.q) {
     const q = norm(state.q);
     list = list.filter((p) => norm(p.name).includes(q));
