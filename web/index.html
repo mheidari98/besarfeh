@@ -56,7 +56,7 @@
         <h1 class="hero__title">ارزان‌ترین اینترنت همراه را پیدا کن</h1>
         <p class="hero__lead">
           همهٔ بسته‌های همراه اول، ایرانسل و رایتل، رتبه‌بندی‌شده بر اساس
-          <strong>قیمت هر مگابایت</strong>.
+          <strong>قیمت هر گیگابایت</strong>.
         </p>
 
         <div class="budget">
@@ -81,6 +81,7 @@
     <main class="wrap">
       <div class="controls" role="region" aria-label="فیلترها">
         <div class="chips" id="providers" role="group" aria-label="اپراتور"></div>
+        <div class="chips chips--dur" id="durations" role="group" aria-label="مدت بسته"></div>
         <div class="controls__right">
           <input
             id="search"
@@ -92,10 +93,14 @@
           <label class="sort">
             <span>مرتب‌سازی</span>
             <select id="sort">
-              <option value="ppm">قیمت هر مگ (کم‌ترین)</option>
+              <option value="ppm">قیمت هر گیگ (کم‌ترین)</option>
               <option value="price">قیمت بسته (کم‌ترین)</option>
               <option value="volume">حجم (بیش‌ترین)</option>
             </select>
+          </label>
+          <label class="sort">
+            <span>حداقل حجم</span>
+            <select id="minvol" aria-label="حداقل حجم بسته"></select>
           </label>
         </div>
       </div>
@@ -111,7 +116,7 @@
           اپراتورها به‌روزرسانی می‌شوند؛ تاریخچهٔ تغییر قیمت‌ها در گیت‌هاب موجود است.
         </p>
         <p class="foot__note">
-          «قیمت هر مگ» = قیمت بسته ÷ حجم آن. بسته‌های شبانه/نامحدود قابل
+          «قیمت هر گیگ» = قیمت بسته ÷ حجم آن. بسته‌های شبانه/نامحدود قابل
           رتبه‌بندی بر این مبنا نیستند و رتبه ندارند. خرید بستهٔ همراه اول با کد
           دستوری؛ ایرانسل و رایتل از سایت خودشان.
         </p>

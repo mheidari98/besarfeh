@@ -16,7 +16,9 @@ uv run python -c "from besarfeh.scrapers import irancell; d=irancell(); print(le
 ```
 
 Providers: `mci`, `mtn` (= Irancell), `rightel`. Sanity counts for a healthy
-scrape: **mci ~40 (34 rankable), mtn ~38, rightel ~85** (as of early 2026).
+scrape: **mci ~40 (34 rankable), mtn ~38, rightel ~49** (as of early 2026).
+RighTel scrapes ~85 raw rows but drops the postpaid (دائمی) twin of each
+prepaid (اعتباری) pack — same price/volume, different offer-code — down to ~49.
 
 ## Conventions
 

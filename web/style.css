@@ -112,8 +112,8 @@ body {
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--ink);
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
   font-size: 17px;
   line-height: 1;
@@ -201,7 +201,10 @@ body {
   background: rgba(255, 255, 255, 0.08);
   color: var(--hero-ink);
   border-radius: 999px;
-  padding: 6px 13px;
+  padding: 6px 15px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -296,7 +299,8 @@ body {
   background: var(--surface);
   color: var(--ink);
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 7px 15px;
+  min-height: 44px;
   font: inherit;
   font-size: 14px;
   cursor: pointer;
@@ -304,6 +308,10 @@ body {
   align-items: center;
   gap: 7px;
   transition: border-color 0.15s, background 0.15s;
+}
+/* duration filter sits on its own row under the operator chips */
+.chips--dur {
+  flex-basis: 100%;
 }
 .chip__dot {
   width: 9px;
@@ -318,7 +326,9 @@ body {
 }
 .controls__right {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 .search,
@@ -407,6 +417,33 @@ body {
   color: var(--muted);
   font-size: 13px;
   margin-block-start: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+/* caveat badges (new-subscriber-only / night / morning window) */
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+}
+.badge--warn {
+  color: #b5451b;
+  background: color-mix(in srgb, #e0571e 16%, var(--surface));
+  border-color: color-mix(in srgb, #e0571e 40%, transparent);
+}
+.badge--night {
+  color: #5b54c9;
+  background: color-mix(in srgb, #6b63e8 16%, var(--surface));
+  border-color: color-mix(in srgb, #6b63e8 40%, transparent);
+}
+.badge--morning {
+  color: #a9791b;
+  background: color-mix(in srgb, #e0a81e 18%, var(--surface));
+  border-color: color-mix(in srgb, #e0a81e 42%, transparent);
 }
 .vol {
   grid-area: vol;
@@ -426,7 +463,7 @@ body {
   grid-area: rate;
   text-align: center;
   font-weight: 900;
-  font-size: 22px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
   color: hsl(var(--hue, 150) 60% var(--rate-l));
   line-height: 1.1;
@@ -449,6 +486,11 @@ body {
 }
 .buy-act {
   width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font: inherit;
   font-size: 13px;
   font-weight: 700;

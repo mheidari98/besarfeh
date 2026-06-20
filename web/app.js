@@ -17,20 +17,52 @@ const PROV = {
 const ORDER = ["mci", "mtn", "rightel"];
 const PRESETS = [50000, 100000, 200000, 500000, 1000000];
 
+// duration buckets (days from packages.json `duration_days`) — the axis Iranians
+// shop by. Single-select chips; "همه" = no filter.
+const DUR_BUCKETS = [
+  { key: "daily", label: "روزانه", test: (d) => d <= 1 },
+  { key: "weekly", label: "هفتگی", test: (d) => d >= 2 && d <= 10 },
+  { key: "monthly", label: "ماهانه", test: (d) => d >= 11 && d <= 45 },
+  { key: "long", label: "بلندمدت", test: (d) => d > 45 },
+];
+// min-volume floor (MB) for the board; 0 = show all.
+const MINVOL = [
+  { v: 0, label: "همهٔ حجم‌ها" },
+  { v: 1024, label: "۱ گیگ به بالا" },
+  { v: 5120, label: "۵ گیگ به بالا" },
+  { v: 10240, label: "۱۰ گیگ به بالا" },
+  { v: 51200, label: "۵۰ گیگ به بالا" },
+];
+// caveats parsed into `flags` by the export step -> small badge on the card.
+const BADGES = {
+  new_sub: { label: "ویژهٔ مشترکین جدید", cls: "badge--warn" },
+  night: { label: "شبانه", cls: "badge--night" },
+  morning: { label: "صبحانت", cls: "badge--morning" },
+};
+
 // --- formatting ---
 const faNum = (n, frac = 0) =>
   new Intl.NumberFormat("fa-IR", { maximumFractionDigits: frac, useGrouping: true }).format(n);
 const toman = (n) => faNum(Math.round(n));
 const volume = (mb) =>
   mb == null ? "—" : mb >= 1024 ? `${faNum(mb / 1024, 1)} گیگ` : `${faNum(mb)} مگ`;
-// accept English OR Persian/Arabic digits, ignore everything else (commas, spaces…)
-const parseDigits = (s) =>
-  Number(
-    String(s)
-      .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
-      .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
-      .replace(/[^\d]/g, ""),
-  ) || 0;
+// Persian/Arabic numerals -> ASCII digits (shared by budget parsing + search).
+const foldDigits = (s) =>
+  String(s)
+    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+// budget field: keep only digits (ignore commas, spaces, "تومان"…)
+const parseDigits = (s) => Number(foldDigits(s).replace(/[^\d]/g, "")) || 0;
+// forgiving search fold: digits + Arabic kaf/yeh -> Persian, drop ZWNJ + spaces.
+// So "گيگ" (Arabic yeh), "۱۵", and "سی روزه" all match what the data stores.
+const norm = (s) =>
+  foldDigits(s)
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[‌\s]/g, "")
+    .toLowerCase();
+// rate the way buyers reason about it: toman per GB (sort still uses per-MB).
+const ratePerGb = (ppm) => faNum(Math.round(ppm * 1024));
 // compact preset label: 50000 -> "۵۰ هزار", 1000000 -> "۱ میلیون"
 const presetLabel = (n) =>
   n >= 1e6 ? `${faNum(n / 1e6)} میلیون` : `${faNum(n / 1e3)} هزار`;
@@ -47,7 +79,7 @@ function heatHue(values) {
 let ALL = [];
 let HUE = () => 150;
 let bestPpm = Infinity;
-const state = { providers: new Set(), q: "", sort: "ppm", budget: 100000 };
+const state = { providers: new Set(), q: "", sort: "ppm", budget: 100000, dur: "", minvol: 0 };
 const $ = (s) => document.querySelector(s);
 
 function readUrl() {
@@ -55,6 +87,8 @@ function readUrl() {
   if (p.has("b")) state.budget = parseDigits(p.get("b"));
   if (p.has("q")) state.q = p.get("q");
   if (["ppm", "price", "volume"].includes(p.get("s"))) state.sort = p.get("s");
+  if (DUR_BUCKETS.some((b) => b.key === p.get("d"))) state.dur = p.get("d");
+  if (p.has("v")) state.minvol = parseDigits(p.get("v"));
   (p.get("p") || "").split(",").filter((k) => PROV[k]).forEach((k) => state.providers.add(k));
 }
 
@@ -63,6 +97,8 @@ function writeUrl() {
   if (state.budget && state.budget !== 100000) p.set("b", state.budget);
   if (state.q) p.set("q", state.q);
   if (state.sort !== "ppm") p.set("s", state.sort);
+  if (state.dur) p.set("d", state.dur);
+  if (state.minvol) p.set("v", state.minvol);
   if (state.providers.size) p.set("p", [...state.providers].join(","));
   const qs = p.toString();
   history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
@@ -90,6 +126,7 @@ async function load() {
   initTheme();
   buildPresets();
   buildChips();
+  buildDurChips();
   bindControls();
   renderAnswer();
   renderBoard();
@@ -177,6 +214,36 @@ function markChips() {
   );
 }
 
+// duration chips: single-select (exclusive), "همه" = no filter
+function buildDurChips() {
+  const box = $("#durations");
+  const mk = (key, label) => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.dataset.dur = key;
+    b.textContent = label;
+    box.appendChild(b);
+  };
+  mk("", "همه");
+  DUR_BUCKETS.forEach((d) => mk(d.key, d.label));
+  markDurChips();
+  box.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    state.dur = btn.dataset.dur;
+    markDurChips();
+    renderBoard();
+    writeUrl();
+  });
+}
+
+function markDurChips() {
+  [...$("#durations").children].forEach((c) =>
+    c.setAttribute("aria-pressed", String(c.dataset.dur === state.dur)),
+  );
+}
+
 function bindControls() {
   const budget = $("#budget");
   budget.value = state.budget || "";
@@ -200,6 +267,20 @@ function bindControls() {
   sort.value = state.sort;
   sort.addEventListener("change", (e) => {
     state.sort = e.target.value;
+    renderBoard();
+    writeUrl();
+  });
+
+  const minvol = $("#minvol");
+  MINVOL.forEach((o) => {
+    const opt = document.createElement("option");
+    opt.value = o.v;
+    opt.textContent = o.label;
+    minvol.appendChild(opt);
+  });
+  minvol.value = state.minvol;
+  minvol.addEventListener("change", (e) => {
+    state.minvol = Number(e.target.value);
     renderBoard();
     writeUrl();
   });
@@ -243,20 +324,33 @@ function renderAnswer() {
       return `<div class="buy ${i === 0 ? "buy--top" : ""}">
         <span class="buy__count">${faNum(it.count)}×</span>
         <span class="buy__name">${PROV[p.provider].label} — ${escape(p.name)}</span>
-        <span class="buy__rate">${faNum(p.price_per_mb, 1)} <small>ت/مگ</small></span>
+        <span class="buy__rate">${ratePerGb(p.price_per_mb)} <small>ت/گیگ</small></span>
         <span class="buy__total">${toman(p.price * it.count)} تومان</span>
       </div>`;
     })
     .join("");
+  const left = b - spent;
+  const tail =
+    left > 0
+      ? `جمعاً ${toman(spent)} از ${toman(b)} تومان؛ ${toman(left)} تومان باقی می‌ماند.`
+      : `جمعاً ${toman(spent)} از ${toman(b)} تومان.`;
   box.innerHTML =
     `<div class="answer__head">با ${toman(b)} تومان، به‌صرفه‌ترین خرید:</div>${rows}` +
-    `<div class="answer__head">جمعاً ${toman(spent)} از ${toman(b)} تومان.</div>`;
+    `<div class="answer__head">${tail}</div>`;
 }
 
 function renderBoard() {
   let list = ALL.slice();
   if (state.providers.size) list = list.filter((p) => state.providers.has(p.provider));
-  if (state.q) list = list.filter((p) => p.name.includes(state.q));
+  if (state.q) {
+    const q = norm(state.q);
+    list = list.filter((p) => norm(p.name).includes(q));
+  }
+  if (state.dur) {
+    const bucket = DUR_BUCKETS.find((b) => b.key === state.dur);
+    list = list.filter((p) => p.duration_days != null && bucket.test(p.duration_days));
+  }
+  if (state.minvol) list = list.filter((p) => (p.volume_mb ?? 0) >= state.minvol);
 
   const big = 1e12;
   const cmp = {
@@ -273,19 +367,22 @@ function renderBoard() {
       const rate =
         p.price_per_mb == null
           ? `<div class="rate rate--none">—<small>بدون رتبه</small></div>`
-          : `<div class="rate" style="--hue:${HUE(p.price_per_mb)}">${faNum(p.price_per_mb, 1)}<small>تومان/مگ</small></div>`;
+          : `<div class="rate" style="--hue:${HUE(p.price_per_mb)}">${ratePerGb(p.price_per_mb)}<small>تومان/گیگ</small></div>`;
+      const badges = (p.flags || [])
+        .map((f) => (BADGES[f] ? `<span class="badge ${BADGES[f].cls}">${BADGES[f].label}</span>` : ""))
+        .join("");
 
       // mci: dialable USSD -> copy button. others: link to operator's buy page.
       const ussd = p.provider === "mci" && p.buy_code && /^\*/.test(p.buy_code);
       const buy = ussd
-        ? `<button class="buy-act copy" type="button" data-code="${escape(p.buy_code)}"><span>کد دستوری</span>${escape(p.buy_code)}</button>`
+        ? `<button class="buy-act copy" type="button" data-code="${escape(p.buy_code)}"><span>کد دستوری</span><bdi class="ussd" dir="ltr">${escape(p.buy_code)}</bdi></button>`
         : `<a class="buy-act link" href="${pv.buy}" target="_blank" rel="noopener">خرید آنلاین<span class="buy-act__ext" aria-hidden="true">↗</span></a>`;
 
       return `<div class="row${p.price_per_mb === bestPpm ? " row--top" : ""}" style="--p:var(${pv.varc});--i:${Math.min(i, 30)}">
       <div class="rank">${faNum(i + 1)}</div>
       <div class="cell__name">
         <div class="name"><span class="tag ${pv.tagMod || ""}">${pv.label}</span>${escape(p.name)}</div>
-        ${p.duration ? `<div class="sub">${escape(p.duration)}</div>` : ""}
+        <div class="sub">${p.duration ? escape(p.duration) : ""}${badges}</div>
       </div>
       <div class="vol">${volume(p.volume_mb)}</div>
       <div class="price">${toman(p.price)} <small>ت</small></div>
@@ -295,18 +392,44 @@ function renderBoard() {
     .join("");
 }
 
+// Copy with a fallback for browsers without the async Clipboard API (older
+// Android WebViews, non-HTTPS previews) so the USSD code is never a dead tap.
+function copyText(text) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.cssText = "position:fixed;top:0;opacity:0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand("copy") ? resolve() : reject();
+    } catch (err) {
+      reject(err);
+    } finally {
+      ta.remove();
+    }
+  });
+}
+
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".copy[data-code]");
   if (!btn) return;
-  navigator.clipboard?.writeText(btn.dataset.code).then(() => {
+  const flash = (msg) => {
     const html = btn.innerHTML;
     btn.classList.add("copy--done");
-    btn.innerHTML = "کپی شد ✓";
+    btn.innerHTML = msg;
     setTimeout(() => {
       btn.classList.remove("copy--done");
       btn.innerHTML = html;
     }, 1500);
-  });
+  };
+  copyText(btn.dataset.code).then(
+    () => flash("کپی شد ✓"),
+    // copy failed: at least surface the code (LTR-isolated) for the user to type
+    () => flash(`<bdi dir="ltr">${escape(btn.dataset.code)}</bdi>`),
+  );
 });
 
 function escape(s) {
