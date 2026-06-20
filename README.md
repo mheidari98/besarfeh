@@ -12,8 +12,9 @@ All three operators are scraped over plain HTTP — no Chrome driver / Selenium.
 
 A static comparator is published to GitHub Pages — pick a budget, see the
 cheapest-per-MB packs and the USSD/offer code to buy them, all in the browser.
-It reads the daily-refreshed CSVs in [`DB/`](DB), so the repo's git history
-doubles as a **price-history dataset**.
+On every push to `main`, CI builds `web/data/packages.json` from the committed
+CSVs in [`DB/`](DB) and redeploys, so the repo's git history doubles as a
+**price-history dataset**.
 
 ---
 
@@ -29,12 +30,28 @@ uv run besarfeh -h            # all options
 
 Installable: `pip install .`, then `besarfeh -b 100000 -p mci`.
 
-Extra entry points (used by CI):
+Extra entry points:
 
 ```bash
 uv run besarfeh-refresh       # re-scrape all providers -> DB/*.csv
-uv run besarfeh-export        # DB/*.csv -> web/data/packages.json (for the site)
+uv run besarfeh-export        # DB/*.csv -> web/data/packages.json (CI builds this)
 ```
+
+---
+
+## Refreshing data
+
+The operator sites are only reachable from inside Iran, so the scrape runs
+**locally**, not in GitHub CI. To update the published prices:
+
+```bash
+uv run besarfeh-refresh                       # scrape -> DB/*.csv
+git commit -am "data: refresh $(date +%F)" && git push   # push to main
+```
+
+The push triggers the Pages workflow, which rebuilds `packages.json` from the
+new CSVs and redeploys. `web/data/` is generated (gitignored) — never committed.
+For daily automation, run that two-liner from a local cron on a machine in Iran.
 
 ---
 

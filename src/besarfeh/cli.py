@@ -6,7 +6,8 @@ from .scrapers import SCRAPERS
 
 
 def refresh():
-    """Re-scrape every provider (writes DB/*.csv). Entry point for the daily Action."""
+    """Re-scrape every provider (writes DB/*.csv). Run locally to refresh data;
+    commit the CSVs and push to redeploy (operator sites need an Iran network)."""
     for name, scrape in SCRAPERS.items():
         try:
             scrape()

@@ -1,8 +1,11 @@
 name: scrape
 
+# NOTE: GitHub-hosted runners sit outside Iran and can't reach mci.ir / rightel
+# (network unreachable / timeout), so a scheduled scrape here only ever refreshes
+# irancell — inconsistent, misleading data. Refresh runs LOCALLY instead: see
+# README "Refreshing data". This workflow is manual-only, for a self-hosted Iran
+# runner if you ever add one.
 on:
-  schedule:
-    - cron: "0 3 * * *" # daily ~06:30 Asia/Tehran
   workflow_dispatch:
 
 permissions:
