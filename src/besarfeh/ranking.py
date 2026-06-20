@@ -26,13 +26,15 @@ def rank(providers, budget):
             print(f"warning: {name} returned no usable rows", file=sys.stderr)
             continue
         df["provider"], df["id"] = name, df.index
+        # irancell volume is a str, mci float-with-NaN, rightel float: coerce once.
+        # Non-numeric junk -> NaN (dropped) instead of crashing the whole ranking.
+        df["volume"] = pd.to_numeric(df["volume"], errors="coerce")
         info[name] = df
         frames.append(df[df["volume"].notna()][["provider", "id", "volume", "price"]])
 
     if not frames:
         return []
     ranking = pd.concat(frames, ignore_index=True)
-    ranking["volume"] = ranking["volume"].astype(float)
     # drop price 0: would ZeroDivisionError below and is meaningless per-MB
     ranking = ranking[ranking["price"] > 0]
     ranking["price/meg"] = ranking["price"] / ranking["volume"]
@@ -58,21 +60,17 @@ def rank(providers, budget):
     return plan
 
 
-def _human_mb(mb):
-    """1024 -> '1 GB', 60 -> '60 MB'."""
-    return f"{mb / 1024:g} GB" if mb >= 1024 else f"{mb:g} MB"
-
-
 def _display_row(item):
     """One uniform, human-readable row across all providers (no internal cols)."""
     pack = item["pack"]
     name = pack.get("pack-name") or pack.get("package_volume_info") or ""
     buy_code = pack.get("ussd_code_block") or pack.get("offer-code") or ""
     price = round(item["price"])
+    mb = item["volume"]
     return {
         "provider": item["provider"],
         "pack": name,
-        "volume": _human_mb(item["volume"]),
+        "volume": f"{mb / 1024:g} GB" if mb >= 1024 else f"{mb:g} MB",
         "price": f"{price:,}",
         "price/MB": f"{item['price_per_mb']:.1f}",
         "count": item["count"],

@@ -11,7 +11,6 @@ filter. `flags` carries buyability caveats parsed from the name (new_sub / night
 """
 
 import json
-import math
 import re
 from pathlib import Path
 
@@ -88,12 +87,8 @@ _MAP = {
 }
 
 
-def _isnan(v):
-    return v is None or (isinstance(v, float) and math.isnan(v))
-
-
 def _txt(v):
-    return "" if _isnan(v) else str(v).strip()
+    return "" if pd.isna(v) else str(v).strip()
 
 
 def to_records(db_dir="DB"):
@@ -103,7 +98,7 @@ def to_records(db_dir="DB"):
         df = pd.read_csv(Path(db_dir) / m["file"])
         for _, row in df.iterrows():
             vol = row.get("volume")
-            vol = None if _isnan(vol) else float(vol)
+            vol = None if pd.isna(vol) else float(vol)
             price = round(float(row["price"]))
             name = _txt(row.get(m["name"]))
             raw_dur = _txt(row.get(m["duration"])) if m["duration"] else ""

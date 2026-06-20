@@ -14,7 +14,7 @@ const PROV = {
   },
   rightel: { label: "رایتل", varc: "--rightel", buy: "https://package.rightel.ir/packagesList" },
 };
-const ORDER = ["mci", "mtn", "rightel"];
+const ORDER = Object.keys(PROV);
 const PRESETS = [50000, 100000, 200000, 500000, 1000000];
 
 // duration buckets (days from packages.json `duration_days`) — the axis Iranians
@@ -88,7 +88,8 @@ function readUrl() {
   if (p.has("q")) state.q = p.get("q");
   if (["ppm", "price", "volume"].includes(p.get("s"))) state.sort = p.get("s");
   if (DUR_BUCKETS.some((b) => b.key === p.get("d"))) state.dur = p.get("d");
-  if (p.has("v")) state.minvol = parseDigits(p.get("v"));
+  // only accept a known floor so the <select> can reflect it (else it desyncs)
+  if (MINVOL.some((o) => o.v === parseDigits(p.get("v")))) state.minvol = parseDigits(p.get("v"));
   (p.get("p") || "").split(",").filter((k) => PROV[k]).forEach((k) => state.providers.add(k));
 }
 
@@ -170,10 +171,15 @@ function buildPresets() {
   });
 }
 
-function markPresets() {
-  [...$("#presets").children].forEach((b) =>
-    b.setAttribute("aria-pressed", String(Number(b.dataset.amount) === state.budget)),
+// set aria-pressed on a row of chips/presets from isActive(dataset value)
+function markRow(boxSel, attr, isActive) {
+  [...$(boxSel).children].forEach((c) =>
+    c.setAttribute("aria-pressed", String(isActive(c.dataset[attr]))),
   );
+}
+
+function markPresets() {
+  markRow("#presets", "amount", (a) => Number(a) === state.budget);
 }
 
 function buildChips() {
@@ -205,13 +211,8 @@ function buildChips() {
 }
 
 function markChips() {
-  [...$("#providers").children].forEach((c) =>
-    c.setAttribute(
-      "aria-pressed",
-      c.dataset.key === "all"
-        ? String(state.providers.size === 0)
-        : String(state.providers.has(c.dataset.key)),
-    ),
+  markRow("#providers", "key", (k) =>
+    k === "all" ? state.providers.size === 0 : state.providers.has(k),
   );
 }
 
@@ -241,9 +242,7 @@ function buildDurChips() {
 }
 
 function markDurChips() {
-  [...$("#durations").children].forEach((c) =>
-    c.setAttribute("aria-pressed", String(c.dataset.dur === state.dur)),
-  );
+  markRow("#durations", "dur", (d) => d === state.dur);
 }
 
 function bindControls() {

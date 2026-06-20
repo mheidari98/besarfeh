@@ -108,18 +108,17 @@ def rightel():
             }
         )
 
+    if not rows:  # all voice/SMS/restricted: let the caller report "no usable rows"
+        return warn_if_low(pd.DataFrame(), "rightel", 49)
     df = pd.DataFrame.from_dict(rows).drop_duplicates(
         subset=["pack-name", "type", "price"], ignore_index=True
     )
     # Each pack is sold to credit (PREPAID) and permanent (POSTPAID) SIMs as two
     # identical rows differing only by offer-code; drop the postpaid twin and keep
     # the credit one (the mass-market SIM). Postpaid packs with no credit twin stay.
-    prepaid = set(
-        map(tuple, df.loc[df["type"] == "PREPAID", ["pack-name", "price"]].values)
-    )
-    twin = df["type"].eq("POSTPAID") & df[["pack-name", "price"]].apply(
-        tuple, axis=1
-    ).isin(prepaid)
+    keys = df.set_index(["pack-name", "price"]).index
+    prepaid = keys[(df["type"] == "PREPAID").to_numpy()]
+    twin = (df["type"] == "POSTPAID").to_numpy() & keys.isin(prepaid)
     df = df[~twin].reset_index(drop=True)
     write_csv(df, OUTPUT_CSV)
     return warn_if_low(df, "rightel", 49)  # ~85 raw, ~49 after prepaid/postpaid dedup
